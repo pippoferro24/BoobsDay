@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #0b0b0d;
+  --color-ink-2: #131317;
+  --color-marvel: #ec1d24;
+  --color-marvel-dark: #b3151b;
+  --color-paper: #f4f4f5;
+
+  --font-display: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.01em;
+}
+
+/* Slab rosso inclinato dei bottoni Marvel. */
+.skew-slab {
+  transform: skewX(-12deg);
+}
+.skew-slab > * {
+  transform: skewX(12deg);
+}
+
+/* Cielo stellato dell'hero: tre livelli di puntini a densita' diversa. */
+.starfield {
+  background-color: #05070f;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(1px 1px at 70% 15%, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(1.5px 1.5px at 45% 65%, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(1px 1px at 85% 55%, rgba(255, 255, 255, 0.6), transparent),
+    radial-gradient(1px 1px at 12% 80%, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1.5px 1.5px at 60% 88%, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(circle at 75% 40%, rgba(58, 74, 160, 0.55), transparent 60%),
+    radial-gradient(circle at 30% 70%, rgba(120, 40, 140, 0.35), transparent 55%),
+    linear-gradient(160deg, #0a0f22 0%, #05070f 60%, #02030a 100%);
+  background-size:
+    240px 240px, 320px 320px, 180px 180px, 260px 260px, 300px 300px, 200px 200px,
+    100% 100%, 100% 100%, 100% 100%;
+}
+
+/* Il carosello scorre in orizzontale ma senza barra visibile. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Titoli di coda: il blocco sale, poi riparte da sotto. */
+@keyframes credits-roll {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(-100%);
+  }
+}
+.credits-roll {
+  animation: credits-roll var(--credits-duration, 26s) linear infinite;
+}
+.credits-paused .credits-roll {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .credits-roll {
+    animation: none;
+    transform: none;
+  }
+}
