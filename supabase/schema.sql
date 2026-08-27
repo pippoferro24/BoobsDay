@@ -1,5 +1,5 @@
 -- ============================================================
--- Doomsday Prep — schema Supabase
+-- Boobsday — schema Supabase
 -- Esegui in Supabase Studio > SQL Editor (e' idempotente).
 -- ============================================================
 
@@ -151,6 +151,15 @@ values (
 on conflict (id) do update
   set file_size_limit = excluded.file_size_limit,
       allowed_mime_types = excluded.allowed_mime_types;
+
+-- Senza questa policy l'API Storage non espone il bucket (anche se esiste
+-- nella tabella): storage.buckets ha la RLS già attiva di suo (tabella
+-- interna di Supabase, non modificabile con ALTER TABLE) e di default
+-- nessuna policy lo rende visibile via anon/authenticated.
+drop policy if exists "i bucket pubblici sono visibili a tutti" on storage.buckets;
+create policy "i bucket pubblici sono visibili a tutti"
+  on storage.buckets for select
+  using (public = true);
 
 drop policy if exists "le immagini dei film sono pubbliche" on storage.objects;
 create policy "le immagini dei film sono pubbliche"
