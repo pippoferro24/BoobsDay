@@ -38,7 +38,7 @@ export function SiteHeader({ userEmail }: { userEmail: string | null }) {
               href="/login"
               className="font-display font-semibold uppercase tracking-wide text-white/80 hover:text-white"
             >
-              Accedi
+              Accedi / Registrati
             </Link>
           )}
         </div>

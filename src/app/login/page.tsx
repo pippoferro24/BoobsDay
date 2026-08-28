@@ -4,7 +4,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { LoginForm } from "@/components/LoginForm";
 import { SITE_NAME } from "@/lib/site";
 
-export const metadata = { title: `Accedi — ${SITE_NAME}` };
+export const metadata = { title: `Accedi o registrati — ${SITE_NAME}` };
 
 export default async function LoginPage() {
   const user = await getUser();
@@ -13,10 +13,12 @@ export default async function LoginPage() {
   return (
     <main className="mx-auto flex min-h-[70vh] max-w-md flex-col justify-center px-6 py-16">
       <h1 className="font-display text-4xl font-extrabold uppercase leading-none text-white">
-        Accedi per votare
+        Accedi o registrati
       </h1>
       <p className="mt-3 text-sm leading-relaxed text-white/60">
-        Ti mandiamo un link di accesso via email. Niente password da ricordare.
+        Non serve un modulo di registrazione a parte: inserisci la tua email, ti mandiamo un
+        link di accesso. Se è la prima volta ti creiamo l&apos;account al volo, altrimenti
+        accedi a quello che hai già. Niente password da ricordare.
       </p>
 
       {isSupabaseConfigured ? (

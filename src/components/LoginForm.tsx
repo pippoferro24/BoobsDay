@@ -17,7 +17,9 @@ export function LoginForm() {
     setStatus("sending");
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${SITE_URL}/auth/callback` },
+      // shouldCreateUser: se l'email non ha ancora un account lo crea al volo,
+      // così lo stesso form serve sia per accedere sia per registrarsi.
+      options: { emailRedirectTo: `${SITE_URL}/auth/callback`, shouldCreateUser: true },
     });
 
     if (error) {
