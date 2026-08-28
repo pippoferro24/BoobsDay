@@ -44,13 +44,13 @@ export default async function HomePage() {
               Disponibile ora
             </p>
             <h1 className="font-display mt-3 text-5xl font-extrabold uppercase leading-[0.92] text-white sm:text-6xl">
-              Guarda tutto
+              Guardale tutte
               <br />
               prima di Doomsday
             </h1>
 
             <p className="mt-5 max-w-md text-[15px] leading-relaxed text-white/70">
-              I 15 titoli della watchlist ufficiale Marvel da recuperare prima di{" "}
+              Le 15 maledette della watchlist ufficiale Marvel da recuperare prima di{" "}
               <em className="not-italic text-white">Avengers: Doomsday</em>, in sala il{" "}
               {RELEASE_LABEL}. Mancano <Countdown />.
             </p>
