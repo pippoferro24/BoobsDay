@@ -53,12 +53,14 @@ src/
 ├── lib/
 │   ├── site.ts                 nome e testi di brand, in un solo punto (vedi sotto)
 │   ├── assets.ts               trova le immagini in public/ (server-only, usa fs)
-│   ├── ratings.ts              server action submitVote + lettura statistiche
+│   ├── ratings.ts              server action voti + categorie (add/reorder) + statistiche
 │   ├── images.ts               server action upload/setFilmCover + lettura galleria
+│   ├── slug.ts                 slugify() condiviso da server e client (nome categoria → chiave)
 │   ├── local-covers.ts         chiavi localStorage + evento condivisi da CoverArt/FilmGallery
+│   ├── local-categories.ts     chiave localStorage per le categorie in modalità demo (globale)
 │   └── supabase/               config, client browser, client server
 ├── proxy.ts                    rinnova la sessione Supabase a ogni navigazione
-└── types.ts                    ⭐ tipo Film + le 5 categorie votabili
+└── types.ts                    ⭐ tipo Film + categorie di partenza (DEFAULT_CATEGORIES)
 supabase/schema.sql             tabelle, RLS, trigger, view aggregata, storage film-images
 ```
 
@@ -87,13 +89,28 @@ poster (card, ventaglio, scheda film) passano dal wrapper client `CoverArt`, che
 Serve a poter aprire il progetto e vederlo funzionare senza configurare niente. **Non
 rimuovere questo fallback** senza motivo: è quello che tiene il progetto avviabile.
 
-## Le 5 categorie votabili
+## Categorie votabili
 
-Definite una sola volta in `src/types.ts` (`CATEGORIES`) e ripetute nel `check` della
-colonna `category` in `supabase/schema.sql`. **Se ne aggiungi una, vanno aggiornati
-entrambi**, altrimenti il vincolo Postgres rifiuta il voto.
+Non sono più un elenco fisso nel codice: vivono in `public.categories` (Supabase) e
+chiunque sia loggato può aggiungerne di nuove o riordinarle direttamente dalla scheda
+film (`RatingPanel`, form "Nuova categoria" + frecce ▲▼), tramite `addCategory` e
+`reorderCategory` in `src/lib/ratings.ts`. Valgono per **tutti** i film, non solo per
+quello da cui vengono aggiunte/riordinate.
 
-`trama` · `personaggi` · `azione` · `colonna_sonora` · `doomsday` — voto intero 1-10.
+- `src/types.ts` (`DEFAULT_CATEGORIES`) è solo il seed iniziale — usato per popolare
+  `public.categories` la prima volta e come fallback in modalità demo.
+- Il riordino passa dalla funzione `swap_category_order()` (security definer) in
+  `supabase/schema.sql`, stesso pattern di `set_film_cover()`: scambia l'ordine tra due
+  categorie adiacenti, così chiunque sia loggato può riordinare anche categorie aggiunte
+  da altri.
+- `votes.category` referenzia `categories.slug` con una foreign key (non più un `check`
+  con l'elenco a mano): aggiungere una categoria da interfaccia basta, non serve toccare
+  lo schema.
+- In modalità demo le categorie sono globali (una sola chiave in `localStorage`, non una
+  per film — vedi `src/lib/local-categories.ts`), a differenza di voti/copertine.
+
+Voto intero 1-10 su ogni categoria, di partenza: `trama` · `personaggi` · `azione` ·
+`colonna_sonora` · `doomsday`.
 
 ## Contenuti: cosa sì e cosa no
 
@@ -104,7 +121,9 @@ Il sito parla di **persone reali**. Regola di prodotto, non negoziabile:
   la vita privata o le relazioni degli interpreti;
 - niente contenuti che una persona citata non vorrebbe vedere pubblicati su di sé.
 
-Se una richiesta va in quella direzione, va riportata su una metrica del film.
+Se una richiesta va in quella direzione, va riportata su una metrica del film. Vale anche
+per le categorie di voto aggiunte da interfaccia: restano una **metrica sul film**, non un
+modo per aggirare la regola sopra.
 
 ## Aggiungere un film
 
@@ -162,6 +181,8 @@ di default ovunque appaia il poster — card home, ventaglio hero, scheda film.
 Esegui `supabase/schema.sql` in Supabase Studio → SQL Editor. È idempotente.
 
 - `profiles` — creato in automatico da un trigger su `auth.users`.
+- `categories` — categorie votabili, seminata con le 5 di partenza. `category` in `votes` è
+  una foreign key verso `categories.slug`. Riordino solo tramite `swap_category_order()`.
 - `votes` — vincolo `unique (user_id, film_slug, category)`: `submitVote` fa `upsert`,
   quindi il secondo voto sovrascrive il primo.
 - `film_rating_stats` — view con media e conteggio, `security_invoker = on`.

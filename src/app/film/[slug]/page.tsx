@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { FILMS, getFilm } from "@/data/films";
 import { posterFor, stillFor } from "@/lib/assets";
-import { getFilmStats, getMyVotes } from "@/lib/ratings";
+import { getCategories, getFilmStats, getMyVotes } from "@/lib/ratings";
 import { getFilmImages } from "@/lib/images";
 import { getUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -33,8 +33,9 @@ export default async function FilmPage({ params }: Params) {
   const film = getFilm(slug);
   if (!film) notFound();
 
+  const categories = await getCategories();
   const [stats, myVotes, user, images] = await Promise.all([
-    getFilmStats(slug),
+    getFilmStats(slug, categories),
     getMyVotes(slug),
     getUser(),
     getFilmImages(slug),
@@ -127,6 +128,7 @@ export default async function FilmPage({ params }: Params) {
           filmSlug={film.slug}
           initialStats={stats}
           initialMyVotes={myVotes}
+          initialCategories={categories}
           isAuthed={Boolean(user)}
           demoMode={demoMode}
         />

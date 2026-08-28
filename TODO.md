@@ -22,13 +22,20 @@ Legenda: `[x]` fatto · `[ ]` da fare · **P1** blocca la produzione · **P2** s
 - [x] Galleria per film: upload immagini utente + copertina promuovibile
       (`FilmGallery`, `lib/images.ts`, tabella `film_images` + storage `film-images`)
 - [x] Nome definitivo deciso: **Boobsday**, centralizzato in `src/lib/site.ts`
+- [x] Poster cliccabile in scheda film: apre la galleria in una finestra (`CoverGallery`)
+- [x] Categorie di voto dinamiche: chiunque sia loggato può aggiungerne e riordinarle,
+      valgono per tutti i film (tabella `categories`, `swap_category_order()`)
+- [x] Deploy online: repo GitHub (`pippoferro24/BoobsDay`) + Vercel + Supabase collegati
 
 ---
 
 ## P1 — prima di mettere online
 
-- [ ] **Creare il progetto Supabase** ed eseguire `supabase/schema.sql`
-- [ ] **Compilare `.env.local`** partendo da `.env.local.example`
+- [x] **Creare il progetto Supabase** ed eseguire `supabase/schema.sql`
+- [x] **Compilare `.env.local`** partendo da `.env.local.example`
+- [ ] **Ri-eseguire `supabase/schema.sql`** dopo le categorie dinamiche: aggiunge la
+      tabella `categories` e sposta `votes.category` da `check` a foreign key. Idempotente,
+      non tocca i voti già salvati
 - [ ] **Verificare il giro di login end to end**: magic link → callback → voto salvato →
       la media cambia davvero per un secondo utente
 - [ ] **Immagini**: caricare `public/posters/<slug>.jpg` (2:3) e
@@ -39,9 +46,10 @@ Legenda: `[x]` fatto · `[ ]` da fare · **P1** blocca la produzione · **P2** s
       su fonte prima della pubblicazione
 - [ ] **Rate limiting sul voto**: oggi un utente registrato può cambiare voto all'infinito.
       Aggiungere un limite lato Supabase (policy o edge function)
-- [ ] **Moderazione immagini utente**: oggi chiunque sia loggato può caricare qualunque
-      immagine e promuoverla a copertina, senza controllo. Serve almeno un modo per
-      segnalare/rimuovere (edge function o pannello admin) prima di un lancio pubblico
+- [ ] **Moderazione contenuti utente**: oggi chiunque sia loggato può caricare qualunque
+      immagine e promuoverla a copertina, o aggiungere/riordinare categorie di voto, senza
+      controllo. Serve almeno un modo per segnalare/rimuovere (edge function o pannello
+      admin) prima di un lancio pubblico
 - [ ] Passare a **Node 22** in locale (`@supabase/supabase-js` deprecato su Node 20)
 
 ## P2 — subito dopo il lancio
@@ -69,10 +77,10 @@ Legenda: `[x]` fatto · `[ ]` da fare · **P1** blocca la produzione · **P2** s
 
 ## Deploy
 
-- [ ] Repo su GitHub
-- [ ] Progetto Vercel collegato + variabili d'ambiente
-- [ ] `NEXT_PUBLIC_SITE_URL` sul dominio di produzione
-- [ ] Dominio Vercel nei **Redirect URLs** di Supabase (altrimenti il magic link torna a
+- [x] Repo su GitHub (`pippoferro24/BoobsDay`)
+- [x] Progetto Vercel collegato + variabili d'ambiente (https://boobs-day.vercel.app)
+- [x] `NEXT_PUBLIC_SITE_URL` sul dominio di produzione
+- [x] Dominio Vercel nei **Redirect URLs** di Supabase (altrimenti il magic link torna a
       localhost)
 - [ ] Template email Supabase in italiano
 - [ ] Controllo finale: Lighthouse, mobile, e la pagina aperta da non registrato

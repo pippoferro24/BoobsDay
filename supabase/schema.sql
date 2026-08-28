@@ -44,13 +44,73 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
+-- ---------- categories ----------
+-- Le categorie votabili non sono più un elenco fisso: chiunque sia loggato
+-- può aggiungerne e riordinarle da interfaccia (vedi RatingPanel). Lo slug
+-- è la chiave, referenziata da votes.category più sotto.
+create table if not exists public.categories (
+  slug        text primary key,
+  label       text not null,
+  hint        text not null default '',
+  sort_order  integer not null,
+  created_by  uuid references auth.users on delete set null,
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists categories_sort_idx on public.categories (sort_order);
+
+insert into public.categories (slug, label, hint, sort_order) values
+  ('trama', 'Trama', 'Regge la storia?', 1),
+  ('personaggi', 'Personaggi', 'Scritti e interpretati bene?', 2),
+  ('azione', 'Azione', 'Combattimenti e set piece', 3),
+  ('colonna_sonora', 'Colonna sonora', 'Musiche e sound design', 4),
+  ('doomsday', 'Rilevanza Doomsday', 'Quanto serve averlo visto', 5)
+on conflict (slug) do nothing;
+
+alter table public.categories enable row level security;
+
+drop policy if exists "le categorie sono leggibili da tutti" on public.categories;
+create policy "le categorie sono leggibili da tutti"
+  on public.categories for select using (true);
+
+drop policy if exists "chi è loggato aggiunge categorie" on public.categories;
+create policy "chi è loggato aggiunge categorie"
+  on public.categories for insert with check (auth.uid() = created_by);
+
+-- Il riordino passa solo da questa funzione (security definer), così
+-- chiunque sia loggato può riordinare anche le categorie aggiunte da altri
+-- (nessuna policy di update diretta su categories).
+create or replace function public.swap_category_order(p_slug_a text, p_slug_b text)
+returns void
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_order_a integer;
+  v_order_b integer;
+begin
+  if auth.uid() is null then
+    raise exception 'Devi accedere per riordinare le categorie';
+  end if;
+
+  select sort_order into v_order_a from public.categories where slug = p_slug_a;
+  select sort_order into v_order_b from public.categories where slug = p_slug_b;
+
+  if v_order_a is null or v_order_b is null then
+    raise exception 'Categoria non trovata';
+  end if;
+
+  update public.categories set sort_order = v_order_b where slug = p_slug_a;
+  update public.categories set sort_order = v_order_a where slug = p_slug_b;
+end;
+$$;
+
 -- ---------- votes ----------
 create table if not exists public.votes (
   id          uuid primary key default gen_random_uuid(),
   user_id     uuid not null references auth.users on delete cascade,
   film_slug   text not null,
-  category    text not null check (category in
-                ('trama','personaggi','azione','colonna_sonora','doomsday')),
+  category    text not null,
   score       smallint not null check (score between 1 and 10),
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now(),
@@ -58,6 +118,13 @@ create table if not exists public.votes (
 );
 
 create index if not exists votes_film_idx on public.votes (film_slug);
+
+-- Il vecchio vincolo elencava le 5 categorie a mano; ora è una foreign key
+-- verso categories, che può crescere da interfaccia.
+alter table public.votes drop constraint if exists votes_category_check;
+alter table public.votes drop constraint if exists votes_category_fkey;
+alter table public.votes
+  add constraint votes_category_fkey foreign key (category) references public.categories (slug);
 
 alter table public.votes enable row level security;
 

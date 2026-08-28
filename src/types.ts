@@ -1,23 +1,23 @@
-export type CategoryId =
-  | "trama"
-  | "personaggi"
-  | "azione"
-  | "colonna_sonora"
-  | "doomsday";
-
+/** Lo slug è la chiave della categoria: in supabase/schema.sql è la primary key di public.categories. */
 export type Category = {
-  id: CategoryId;
+  slug: string;
   label: string;
   hint: string;
+  sortOrder: number;
 };
 
-/** Le cinque metriche votabili. Ordine = ordine di rendering nella scheda film. */
-export const CATEGORIES: Category[] = [
-  { id: "trama", label: "Trama", hint: "Regge la storia?" },
-  { id: "personaggi", label: "Personaggi", hint: "Scritti e interpretati bene?" },
-  { id: "azione", label: "Azione", hint: "Combattimenti e set piece" },
-  { id: "colonna_sonora", label: "Colonna sonora", hint: "Musiche e sound design" },
-  { id: "doomsday", label: "Rilevanza Doomsday", hint: "Quanto serve averlo visto" },
+/**
+ * Le categorie di partenza: seminano public.categories in supabase/schema.sql
+ * e coprono la modalità demo senza Supabase. Chiunque sia loggato può
+ * aggiungerne altre e riordinarle da interfaccia (vedi RatingPanel) — non
+ * sono più un elenco fisso.
+ */
+export const DEFAULT_CATEGORIES: Category[] = [
+  { slug: "trama", label: "Trama", hint: "Regge la storia?", sortOrder: 1 },
+  { slug: "personaggi", label: "Personaggi", hint: "Scritti e interpretati bene?", sortOrder: 2 },
+  { slug: "azione", label: "Azione", hint: "Combattimenti e set piece", sortOrder: 3 },
+  { slug: "colonna_sonora", label: "Colonna sonora", hint: "Musiche e sound design", sortOrder: 4 },
+  { slug: "doomsday", label: "Rilevanza Doomsday", hint: "Quanto serve averlo visto", sortOrder: 5 },
 ];
 
 export type Film = {
@@ -41,7 +41,7 @@ export type Film = {
 };
 
 export type FilmStat = {
-  category: CategoryId;
+  category: string;
   average: number;
   votes: number;
 };
