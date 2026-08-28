@@ -132,15 +132,10 @@ export function FilmGallery({ filmSlug, initialImages, isAuthed, demoMode }: Pro
   }
 
   return (
-    <section aria-labelledby="galleria" className="mt-14">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <h2 id="galleria" className="font-display text-3xl font-extrabold uppercase text-white">
-          Galleria
-        </h2>
-        <p className="text-xs uppercase tracking-widest text-white/40">
-          {demoMode ? "modalità demo · immagini locali" : "carica un'immagine, poi impostala come copertina"}
-        </p>
-      </div>
+    <section aria-label="Galleria immagini" className="mt-6">
+      <p className="text-xs uppercase tracking-widest text-white/40">
+        {demoMode ? "modalità demo · immagini locali" : "carica un'immagine, poi impostala come copertina"}
+      </p>
 
       {locked && (
         <p className="mt-4 border-l-2 border-marvel bg-white/5 px-4 py-3 text-sm text-white/70">

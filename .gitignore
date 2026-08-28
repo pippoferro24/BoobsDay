@@ -11,3 +11,4 @@ tsconfig.tsbuildinfo
 
 # materiale di riferimento locale, non va nel repository
 /foto
+/.playwright-mcp

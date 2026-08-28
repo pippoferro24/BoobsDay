@@ -9,9 +9,8 @@ import { getUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { RatingPanel } from "@/components/RatingPanel";
 import { CreditsScroll } from "@/components/CreditsScroll";
-import { CoverArt } from "@/components/CoverArt";
+import { CoverGallery } from "@/components/CoverGallery";
 import { CoverCaption } from "@/components/CoverCaption";
-import { FilmGallery } from "@/components/FilmGallery";
 import { SITE_NAME } from "@/lib/site";
 
 type Params = { params: Promise<{ slug: string }> };
@@ -88,7 +87,14 @@ export default async function FilmPage({ params }: Params) {
               className="w-40 shrink-0 overflow-hidden shadow-2xl ring-1 ring-white/15"
               style={{ aspectRatio: "2 / 3" }}
             >
-              <CoverArt film={film} initialSrc={coverSrc} demoMode={demoMode} priority />
+              <CoverGallery
+                film={film}
+                initialSrc={coverSrc}
+                initialImages={images}
+                isAuthed={Boolean(user)}
+                demoMode={demoMode}
+                priority
+              />
             </div>
 
             <div>
@@ -121,13 +127,6 @@ export default async function FilmPage({ params }: Params) {
           filmSlug={film.slug}
           initialStats={stats}
           initialMyVotes={myVotes}
-          isAuthed={Boolean(user)}
-          demoMode={demoMode}
-        />
-
-        <FilmGallery
-          filmSlug={film.slug}
-          initialImages={images}
           isAuthed={Boolean(user)}
           demoMode={demoMode}
         />

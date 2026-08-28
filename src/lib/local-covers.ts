@@ -10,6 +10,11 @@ export const COVER_CHANGED_EVENT = "doomsday-prep:cover-changed";
 
 export type CoverChangedDetail = { slug: string; url: string };
 
+/** Apre la galleria da un punto qualsiasi della pagina (es. click sul nome dell'attrice). */
+export const OPEN_GALLERY_EVENT = "doomsday-prep:open-gallery";
+
+export type OpenGalleryDetail = { slug: string };
+
 export function readFileAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
