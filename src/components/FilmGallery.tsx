@@ -87,12 +87,18 @@ export function FilmGallery({ filmSlug, initialImages, isAuthed, demoMode }: Pro
     const formData = new FormData();
     formData.append("file", file);
     startTransition(async () => {
-      const res = await uploadFilmImage(filmSlug, formData);
-      if (!res.ok) {
-        setError(res.error);
-        return;
+      try {
+        const res = await uploadFilmImage(filmSlug, formData);
+        if (!res.ok) {
+          setError(res.error);
+          return;
+        }
+        setImages((prev) => [res.image, ...prev]);
+      } catch {
+        // La Server Action può fallire prima ancora di essere eseguita
+        // (rete, corpo della richiesta troppo grande): non far cadere la pagina.
+        setError("Upload fallito. Riprova con un file più leggero o controlla la connessione.");
       }
-      setImages((prev) => [res.image, ...prev]);
     });
   }
 
@@ -117,17 +123,21 @@ export function FilmGallery({ filmSlug, initialImages, isAuthed, demoMode }: Pro
     }
 
     startTransition(async () => {
-      const res = await setFilmCover(filmSlug, image.id);
-      if (!res.ok) {
-        setError(res.error);
-        return;
+      try {
+        const res = await setFilmCover(filmSlug, image.id);
+        if (!res.ok) {
+          setError(res.error);
+          return;
+        }
+        setImages((prev) => prev.map((i) => ({ ...i, isCover: i.id === image.id })));
+        window.dispatchEvent(
+          new CustomEvent<CoverChangedDetail>(COVER_CHANGED_EVENT, {
+            detail: { slug: filmSlug, url: image.url },
+          })
+        );
+      } catch {
+        setError("Impostazione della copertina fallita. Riprova.");
       }
-      setImages((prev) => prev.map((i) => ({ ...i, isCover: i.id === image.id })));
-      window.dispatchEvent(
-        new CustomEvent<CoverChangedDetail>(COVER_CHANGED_EVENT, {
-          detail: { slug: filmSlug, url: image.url },
-        })
-      );
     });
   }
 

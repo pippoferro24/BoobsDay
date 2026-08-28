@@ -1,5 +1,6 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import type { FilmImage } from "@/types";
 import { createClient } from "@/lib/supabase/server";
@@ -82,34 +83,41 @@ export async function uploadFilmImage(
   }
 
   const ext = file.type.split("/")[1];
-  const path = `${filmSlug}/${user.id}/${crypto.randomUUID()}.${ext}`;
+  const path = `${filmSlug}/${user.id}/${randomUUID()}.${ext}`;
 
-  const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file, {
-    contentType: file.type,
-  });
-  if (uploadError) return { ok: false, error: uploadError.message };
+  try {
+    const { error: uploadError } = await supabase.storage.from(BUCKET).upload(path, file, {
+      contentType: file.type,
+    });
+    if (uploadError) return { ok: false, error: uploadError.message };
 
-  const { data: row, error: insertError } = await supabase
-    .from("film_images")
-    .insert({ film_slug: filmSlug, user_id: user.id, storage_path: path })
-    .select("id, storage_path, is_cover, created_at")
-    .single();
+    const { data: row, error: insertError } = await supabase
+      .from("film_images")
+      .insert({ film_slug: filmSlug, user_id: user.id, storage_path: path })
+      .select("id, storage_path, is_cover, created_at")
+      .single();
 
-  if (insertError || !row) {
-    return { ok: false, error: insertError?.message ?? "Errore nel salvataggio dell'immagine" };
+    if (insertError || !row) {
+      return { ok: false, error: insertError?.message ?? "Errore nel salvataggio dell'immagine" };
+    }
+
+    revalidatePath(`/film/${filmSlug}`);
+
+    return {
+      ok: true,
+      image: {
+        id: row.id,
+        url: publicUrl(supabase, row.storage_path),
+        isCover: row.is_cover,
+        createdAt: row.created_at,
+      },
+    };
+  } catch (err) {
+    // Errore imprevisto (rete, limite Vercel, ecc.): meglio un messaggio
+    // leggibile in galleria che far cadere l'intera pagina.
+    const message = err instanceof Error ? err.message : "Errore imprevisto durante l'upload";
+    return { ok: false, error: message };
   }
-
-  revalidatePath(`/film/${filmSlug}`);
-
-  return {
-    ok: true,
-    image: {
-      id: row.id,
-      url: publicUrl(supabase, row.storage_path),
-      isCover: row.is_cover,
-      createdAt: row.created_at,
-    },
-  };
 }
 
 export type SetCoverResult = { ok: true } | { ok: false; error: string };
