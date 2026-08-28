@@ -12,6 +12,7 @@ import { RatingPanel } from "@/components/RatingPanel";
 import { CreditsScroll } from "@/components/CreditsScroll";
 import { CoverGallery } from "@/components/CoverGallery";
 import { CoverCaption } from "@/components/CoverCaption";
+import { FilmGallery } from "@/components/FilmGallery";
 import { SITE_NAME } from "@/lib/site";
 
 type Params = { params: Promise<{ slug: string }> };
@@ -131,6 +132,14 @@ export default async function FilmPage({ params }: Params) {
           initialStats={stats}
           initialMyVotes={myVotes}
           initialCategories={categories}
+          isAuthed={Boolean(user)}
+          demoMode={demoMode}
+        />
+
+        <FilmGallery
+          heading="Archivio immagini"
+          filmSlug={film.slug}
+          initialImages={images}
           isAuthed={Boolean(user)}
           demoMode={demoMode}
         />

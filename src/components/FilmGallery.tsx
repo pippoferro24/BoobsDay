@@ -17,17 +17,20 @@ type Props = {
   initialImages: FilmImage[];
   isAuthed: boolean;
   demoMode: boolean;
+  /** Intestazione della sezione: presente nell'archivio in pagina, assente dentro la modale di CoverGallery. */
+  heading?: string;
 };
 
 const DEMO_MAX_BYTES = 1.5 * 1024 * 1024;
 
 /**
- * Galleria di immagini caricate dagli utenti per un film, con la possibilità
- * di promuoverne una a copertina. In modalità demo tutto vive in localStorage
+ * Archivio di immagini caricate dagli utenti per un film — restano lì
+ * indefinitamente, nessuna scade o va persa — con la possibilità di
+ * promuoverne una a copertina. In modalità demo tutto vive in localStorage
  * (nessun Supabase, nessun limite di un upload per persona); altrimenti passa
  * dai server action in lib/images.ts, dietro login come per i voti.
  */
-export function FilmGallery({ filmSlug, initialImages, isAuthed, demoMode }: Props) {
+export function FilmGallery({ filmSlug, initialImages, isAuthed, demoMode, heading }: Props) {
   const [images, setImages] = useState(initialImages);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -142,9 +145,23 @@ export function FilmGallery({ filmSlug, initialImages, isAuthed, demoMode }: Pro
   }
 
   return (
-    <section aria-label="Galleria immagini" className="mt-6">
-      <p className="text-xs uppercase tracking-widest text-white/40">
-        {demoMode ? "modalità demo · immagini locali" : "carica un'immagine, poi impostala come copertina"}
+    <section
+      aria-label={heading ? undefined : "Galleria immagini"}
+      aria-labelledby={heading ? "archivio-immagini" : undefined}
+      className={heading ? "mt-14" : "mt-6"}
+    >
+      {heading && (
+        <h2
+          id="archivio-immagini"
+          className="font-display text-3xl font-extrabold uppercase text-white"
+        >
+          {heading}
+        </h2>
+      )}
+      <p className={heading ? "mt-2 text-xs uppercase tracking-widest text-white/40" : "text-xs uppercase tracking-widest text-white/40"}>
+        {demoMode
+          ? "modalità demo · immagini locali"
+          : "restano qui, chiunque sia loggato può caricarne e impostare la copertina"}
       </p>
 
       {locked && (
