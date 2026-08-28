@@ -5,6 +5,7 @@ import { FILMS, getFilm } from "@/data/films";
 import { posterFor, stillFor } from "@/lib/assets";
 import { getCategories, getFilmStats, getMyVotes } from "@/lib/ratings";
 import { getFilmImages } from "@/lib/images";
+import { getFilmTrivia } from "@/lib/trivia";
 import { getUser } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { RatingPanel } from "@/components/RatingPanel";
@@ -34,11 +35,12 @@ export default async function FilmPage({ params }: Params) {
   if (!film) notFound();
 
   const categories = await getCategories();
-  const [stats, myVotes, user, images] = await Promise.all([
+  const [stats, myVotes, user, images, userTrivia] = await Promise.all([
     getFilmStats(slug, categories),
     getMyVotes(slug),
     getUser(),
     getFilmImages(slug),
+    getFilmTrivia(slug),
   ]);
 
   const demoMode = !isSupabaseConfigured;
@@ -133,7 +135,14 @@ export default async function FilmPage({ params }: Params) {
           demoMode={demoMode}
         />
 
-        <CreditsScroll items={film.trivia} title={film.title} />
+        <CreditsScroll
+          filmSlug={film.slug}
+          title={film.title}
+          staticItems={film.trivia}
+          initialUserTrivia={userTrivia}
+          isAuthed={Boolean(user)}
+          demoMode={demoMode}
+        />
 
         {/* ---------- NAVIGAZIONE ---------- */}
         <nav className="mt-16 grid gap-3 border-t border-white/10 pt-6 sm:grid-cols-2">

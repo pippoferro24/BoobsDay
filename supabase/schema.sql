@@ -242,3 +242,27 @@ create policy "carico immagini solo nella mia cartella"
     bucket_id = 'film-images'
     and (storage.foldername(name))[2] = auth.uid()::text
   );
+
+-- ---------- film_trivia ----------
+-- Curiosità aggiunte dagli utenti, in coda a quelle scritte a mano in
+-- films.ts. Nessuna promozione/ordine speciale: appaiono nell'ordine in
+-- cui vengono inserite.
+create table if not exists public.film_trivia (
+  id          uuid primary key default gen_random_uuid(),
+  film_slug   text not null,
+  user_id     uuid not null references auth.users on delete cascade,
+  text        text not null,
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists film_trivia_slug_idx on public.film_trivia (film_slug);
+
+alter table public.film_trivia enable row level security;
+
+drop policy if exists "le curiosità sono leggibili da tutti" on public.film_trivia;
+create policy "le curiosità sono leggibili da tutti"
+  on public.film_trivia for select using (true);
+
+drop policy if exists "aggiungo solo le mie curiosità" on public.film_trivia;
+create policy "aggiungo solo le mie curiosità"
+  on public.film_trivia for insert with check (auth.uid() = user_id);

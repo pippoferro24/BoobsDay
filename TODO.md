@@ -26,6 +26,8 @@ Legenda: `[x]` fatto · `[ ]` da fare · **P1** blocca la produzione · **P2** s
 - [x] Categorie di voto dinamiche: chiunque sia loggato può aggiungerne e riordinarle,
       valgono per tutti i film (tabella `categories`, `swap_category_order()`)
 - [x] Deploy online: repo GitHub (`pippoferro24/BoobsDay`) + Vercel + Supabase collegati
+- [x] Curiosità aggiungibili dagli utenti, in coda a quelle di `films.ts`
+      (`CreditsScroll`, `lib/trivia.ts`, tabella `film_trivia`)
 
 ---
 
@@ -33,9 +35,10 @@ Legenda: `[x]` fatto · `[ ]` da fare · **P1** blocca la produzione · **P2** s
 
 - [x] **Creare il progetto Supabase** ed eseguire `supabase/schema.sql`
 - [x] **Compilare `.env.local`** partendo da `.env.local.example`
-- [ ] **Ri-eseguire `supabase/schema.sql`** dopo le categorie dinamiche: aggiunge la
-      tabella `categories` e sposta `votes.category` da `check` a foreign key. Idempotente,
-      non tocca i voti già salvati
+- [x] **Ri-eseguire `supabase/schema.sql`** dopo le categorie dinamiche: aggiunge la
+      tabella `categories` e sposta `votes.category` da `check` a foreign key
+- [ ] **Ri-eseguire di nuovo `supabase/schema.sql`** dopo le curiosità utente: aggiunge la
+      tabella `film_trivia`. Idempotente, non tocca voti/immagini/categorie già salvate
 - [ ] **Verificare il giro di login end to end**: magic link → callback → voto salvato →
       la media cambia davvero per un secondo utente
 - [ ] **Immagini**: caricare `public/posters/<slug>.jpg` (2:3) e
@@ -47,9 +50,9 @@ Legenda: `[x]` fatto · `[ ]` da fare · **P1** blocca la produzione · **P2** s
 - [ ] **Rate limiting sul voto**: oggi un utente registrato può cambiare voto all'infinito.
       Aggiungere un limite lato Supabase (policy o edge function)
 - [ ] **Moderazione contenuti utente**: oggi chiunque sia loggato può caricare qualunque
-      immagine e promuoverla a copertina, o aggiungere/riordinare categorie di voto, senza
-      controllo. Serve almeno un modo per segnalare/rimuovere (edge function o pannello
-      admin) prima di un lancio pubblico
+      immagine e promuoverla a copertina, aggiungere/riordinare categorie di voto, o
+      scrivere qualunque curiosità, senza controllo. Serve almeno un modo per
+      segnalare/rimuovere (edge function o pannello admin) prima di un lancio pubblico
 - [ ] Passare a **Node 22** in locale (`@supabase/supabase-js` deprecato su Node 20)
 
 ## P2 — subito dopo il lancio

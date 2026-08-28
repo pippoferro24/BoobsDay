@@ -10,8 +10,9 @@ recuperare prima di *Avengers: Doomsday* (in sala il **18 dicembre 2026**).
 - **Home** — hero in stile Marvel Unlimited + carosello con tutti i titoli.
   La copertina di ogni card è la **protagonista femminile** del film.
 - **Scheda film** (`/film/[slug]`) — foto dell'interprete in copertina, data di uscita,
-  durata, sinossi, motivo per cui è in lista, **statistiche votabili**, **galleria con
-  copertina caricata dagli utenti** e **curiosità a scorrimento** in stile titoli di coda.
+  durata, sinossi, motivo per cui è in lista, **statistiche votabili** (categorie
+  aggiungibili e riordinabili), **galleria con copertina caricata dagli utenti** e
+  **curiosità a scorrimento** in stile titoli di coda, integrabili dagli utenti.
 - **Account** — login via magic link Supabase; ogni utente registrato vota una volta per
   categoria e può cambiare idea.
 
@@ -55,9 +56,11 @@ src/
 │   ├── assets.ts               trova le immagini in public/ (server-only, usa fs)
 │   ├── ratings.ts              server action voti + categorie (add/reorder) + statistiche
 │   ├── images.ts               server action upload/setFilmCover + lettura galleria
+│   ├── trivia.ts                server action addTrivia + lettura curiosità utenti
 │   ├── slug.ts                 slugify() condiviso da server e client (nome categoria → chiave)
 │   ├── local-covers.ts         chiavi localStorage + evento condivisi da CoverArt/FilmGallery
 │   ├── local-categories.ts     chiave localStorage per le categorie in modalità demo (globale)
+│   ├── local-trivia.ts         chiave localStorage per le curiosità in modalità demo (per film)
 │   └── supabase/               config, client browser, client server
 ├── proxy.ts                    rinnova la sessione Supabase a ogni navigazione
 └── types.ts                    ⭐ tipo Film + categorie di partenza (DEFAULT_CATEGORIES)
@@ -188,6 +191,7 @@ Esegui `supabase/schema.sql` in Supabase Studio → SQL Editor. È idempotente.
 - `film_rating_stats` — view con media e conteggio, `security_invoker = on`.
 - `film_images` — immagini caricate dagli utenti; al più una `is_cover = true` per film
   (indice unico parziale). Promozione solo tramite `set_film_cover()`.
+- `film_trivia` — curiosità aggiunte dagli utenti per film, in coda a quelle di `films.ts`.
 - Storage: bucket `film-images` (pubblico in lettura, upload solo nella propria cartella).
 - RLS attiva ovunque: i voti e le immagini sono **leggibili da tutti**, scrivibili solo dal
   proprietario.
@@ -209,4 +213,5 @@ Esegui `supabase/schema.sql` in Supabase Studio → SQL Editor. È idempotente.
   `PosterArt` non chiama più `posterFor()` da sé: riceve `src` già risolto, altrimenti
   finirebbe nel bundle client tramite `CoverArt`.
 - Le curiosità in `films.ts` sono scritte a mano e **non sono verificate una per una**:
-  ricontrollale prima di pubblicare (vedi TODO).
+  ricontrollale prima di pubblicare (vedi TODO). Quelle aggiunte dagli utenti (tabella
+  `film_trivia`) restano invece sotto la loro responsabilità.

@@ -53,3 +53,10 @@ export type FilmImage = {
   isCover: boolean;
   createdAt: string;
 };
+
+/** Curiosità aggiunta da un utente per un film, in coda a quelle scritte a mano in films.ts. */
+export type FilmTrivia = {
+  id: string;
+  text: string;
+  createdAt: string;
+};

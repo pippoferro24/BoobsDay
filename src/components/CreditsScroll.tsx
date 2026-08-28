@@ -1,14 +1,86 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
+import { useEffect, useState, useTransition } from "react";
+import type { FilmTrivia } from "@/types";
+import { addTrivia } from "@/lib/trivia";
+import { readLocalTrivia, writeLocalTrivia } from "@/lib/local-trivia";
+
+type Props = {
+  filmSlug: string;
+  title: string;
+  /** Scritte a mano in films.ts: sempre presenti, in testa. */
+  staticItems: string[];
+  initialUserTrivia: FilmTrivia[];
+  isAuthed: boolean;
+  demoMode: boolean;
+};
 
 /**
- * Curiosità sul film che salgono come i titoli di coda.
- * Si ferma al passaggio del mouse, col focus da tastiera o dal bottone.
+ * Curiosità sul film che salgono come i titoli di coda: quelle scritte a
+ * mano in films.ts, seguite da quelle aggiunte dagli utenti. Si ferma al
+ * passaggio del mouse, col focus da tastiera o dal bottone.
  */
-export function CreditsScroll({ items, title }: { items: string[]; title: string }) {
+export function CreditsScroll({
+  filmSlug,
+  title,
+  staticItems,
+  initialUserTrivia,
+  isAuthed,
+  demoMode,
+}: Props) {
   const [paused, setPaused] = useState(false);
+  const [userTrivia, setUserTrivia] = useState(initialUserTrivia);
+  const [text, setText] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  useEffect(() => {
+    if (!demoMode) return;
+    const local = readLocalTrivia(filmSlug);
+    if (local.length) setUserTrivia(local);
+  }, [demoMode, filmSlug]);
+
+  const items = [...staticItems, ...userTrivia.map((t) => t.text)];
   const duration = Math.max(18, items.length * 7);
+  const locked = !demoMode && !isAuthed;
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    const trimmed = text.trim();
+    if (!trimmed) {
+      setError("La curiosità non può essere vuota");
+      return;
+    }
+    if (trimmed.length > 240) {
+      setError("Massimo 240 caratteri");
+      return;
+    }
+
+    if (demoMode) {
+      const trivia: FilmTrivia = {
+        id: crypto.randomUUID(),
+        text: trimmed,
+        createdAt: new Date().toISOString(),
+      };
+      const next = [...userTrivia, trivia];
+      setUserTrivia(next);
+      writeLocalTrivia(filmSlug, next);
+      setText("");
+      return;
+    }
+
+    startTransition(async () => {
+      const res = await addTrivia(filmSlug, trimmed);
+      if (!res.ok) {
+        setError(res.error);
+        return;
+      }
+      setUserTrivia((prev) => [...prev, res.trivia]);
+      setText("");
+    });
+  }
 
   return (
     <section aria-labelledby="curiosita" className="mt-14">
@@ -44,8 +116,8 @@ export function CreditsScroll({ items, title }: { items: string[]; title: string
           <p className="font-display text-xs font-bold uppercase tracking-[0.5em] text-marvel">
             {title}
           </p>
-          {items.map((item) => (
-            <p key={item} className="max-w-xl text-[15px] leading-relaxed text-white/80">
+          {items.map((item, i) => (
+            <p key={i} className="max-w-xl text-[15px] leading-relaxed text-white/80">
               {item}
             </p>
           ))}
@@ -65,11 +137,56 @@ export function CreditsScroll({ items, title }: { items: string[]; title: string
           Leggi tutte le curiosità
         </summary>
         <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-white/70">
-          {items.map((item) => (
-            <li key={item}>{item}</li>
+          {items.map((item, i) => (
+            <li key={i}>{item}</li>
           ))}
         </ul>
       </details>
+
+      {error && (
+        <p role="alert" className="mt-4 border-l-2 border-amber-400 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
+          {error}
+        </p>
+      )}
+
+      {locked ? (
+        <p className="mt-4 text-sm text-white/50">
+          <Link href="/login" className="font-semibold text-white underline">
+            Accedi
+          </Link>{" "}
+          per aggiungere una curiosità.
+        </p>
+      ) : (
+        <form onSubmit={handleSubmit} className="mt-4">
+          <label
+            htmlFor="new-trivia"
+            className="font-display text-xs font-bold uppercase tracking-[0.3em] text-white/50"
+          >
+            Aggiungi una curiosità — su produzione e carriera, non sulla vita privata degli
+            interpreti
+          </label>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <input
+              id="new-trivia"
+              type="text"
+              maxLength={240}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="es. Il film è stato girato in sei mesi tra Londra e Atlanta"
+              className="min-w-[240px] flex-1 border border-white/15 bg-white/5 px-3 py-2 text-sm text-white outline-none placeholder:text-white/25 focus:border-marvel"
+            />
+            <button
+              type="submit"
+              disabled={pending || !text.trim()}
+              className="skew-slab bg-marvel px-5 py-2.5 transition hover:bg-marvel-dark disabled:opacity-50"
+            >
+              <span className="font-display block text-sm font-bold uppercase tracking-wider text-white">
+                Aggiungi
+              </span>
+            </button>
+          </div>
+        </form>
+      )}
     </section>
   );
 }
